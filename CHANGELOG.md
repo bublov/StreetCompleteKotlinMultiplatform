@@ -2,6 +2,12 @@
 
 ## v61.0
 
+### Android below 7.1 no longer supported (#6210)
+
+In reality, support for Android versions below 7.1 has already been just on-paper for a while now,
+as more and more issues with old Androids have been popping up lately that cannot be fixed on my
+side. Luckily, it seems that >99.6% of app users already use a newer Android. (See #6210)
+
 ### New quests
 
 - _"Are gluten-free products offered here?"_, disabled by default (#3031, #6143), by @mnalis
@@ -13,12 +19,15 @@
 - Smoothness: Don't ask if surface is still correct just after specifying the surface smoothness (#6178)
 - Baby changing tables: Ask at more places (#6167), by @agent-redd
 - Sidewalk overlay: Align which roads are selectable with the bike paths overlay, for consistency (#6185), by @mnalis
+- Roadwork: Also ask whether minor roadwork (i.e. construction without full road closure) is completed (#6090)
 - Various: Ask about more features of alpine and wilderness huts (#6200, #6201), thanks @tiptoptom
-- Other small things (#6209, …), thanks @mnalis
+- Building levels: Prettified input form a bit (#6022), by @GaeaKat
+- Other small things (#6209, #6216, #6217…), thanks @mnalis
 
 ### General Improvements
 
-- Performance improvements on upload and download (#6150)
+- Performance improvements on upload and download (#6150) as well as significantly decreased data download size (#6218)
+- Performance improvements in the quest selection screen (#6205), by @irakliy01
 
 ## v60.3
 
@@ -571,7 +580,7 @@ Now you can comprehensively map and verify surfaces mapped for roads and paths (
 Measuring distances with the camera has been outsourced into a standalone app, so you can also measure things outside of the context of solving quests: [StreetMeasure](https://play.google.com/store/apps/details?id=de.westnordost.streetmeasure)
 
 This has been done for licensing reasons (see #4289). In a nutshell, ARCore (= [Google Play Services for AR](https://play.google.com/store/apps/details?id=com.google.ar.core)), on which the measuring is dependent on, is not open source.  
- This is why it is also not available on the main repo in F-Droid. If you do not have Google Play, you can [download the APK from GitHub](https://github.com/streetcomplete/StreetMeasure/releases), but then you also need to install ARCore.
+This is why it is also not available on the main repo in F-Droid. If you do not have Google Play, you can [download the APK from GitHub](https://github.com/streetcomplete/StreetMeasure/releases), but then you also need to install ARCore.
 
 ### New Quests
 
@@ -766,7 +775,7 @@ The app is now more responsive during normal use thanks to extensive caching and
 ### 🅿️ Street Parking Overlay (#4177, #4329)
 
 Comprehensively record the physical parking situation along the streets in your neighborhood!  
- Be warned, of the overlays so far, this is the most complex one and the first that does not replace a pre-existing quest 🙂
+Be warned, of the overlays so far, this is the most complex one and the first that does not replace a pre-existing quest 🙂
 
 ### New Quests
 
