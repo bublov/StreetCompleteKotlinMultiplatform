@@ -1,12 +1,190 @@
 import java.io.FileInputStream
 import java.io.FileWriter
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    id("org.jetbrains.kotlin.multiplatform")
     id("com.android.application")
-    kotlin("android")
     kotlin("plugin.serialization") version "2.0.0"
     kotlin("plugin.compose") version "2.0.0"
+}
+
+kotlin {
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    // iOS targets
+    val xcfName = "streetcomplete"
+
+    iosX64 {
+        binaries.framework {
+            baseName = xcfName
+        }
+    }
+
+    iosArm64 {
+        binaries.framework {
+            baseName = xcfName
+        }
+    }
+
+    iosSimulatorArm64 {
+        binaries.framework {
+            baseName = xcfName
+        }
+    }
+
+    val mockitoVersion = "5.15.2"
+
+    // Source sets
+    sourceSets {
+        commonMain {
+            dependencies {
+                // Kotlin
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+
+                // Date/time
+                api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+
+                // serialization
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.8.0")
+                implementation("com.charleskorn.kaml:kaml:0.72.0")
+                implementation("io.github.pdvrieze.xmlutil:core:0.91.0")
+                implementation("io.github.pdvrieze.xmlutil:core-io:0.91.0")
+
+                // HTTP Client
+                implementation("io.ktor:ktor-client-core:3.1.1")
+                implementation("io.ktor:ktor-client-encoding:3.1.1")
+
+                // settings
+                implementation("com.russhwolf:multiplatform-settings:1.3.0")
+
+                // for encoding information for the URL configuration (QR code)
+                implementation("com.ionspin.kotlin:bignum:0.3.10")
+
+                // opening hours parser
+                implementation("de.westnordost:osm-opening-hours:0.2.0")
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation("io.ktor:ktor-client-mock:3.1.1")
+                implementation("androidx.test:runner:1.6.2")
+                implementation("androidx.test:rules:1.6.1")
+            }
+        }
+
+        val androidMain by getting {
+            dependencies {
+
+                // dependency injection
+                implementation(platform("io.insert-koin:koin-bom:4.0.2"))
+                implementation("io.insert-koin:koin-core")
+                implementation("io.insert-koin:koin-android")
+                implementation("io.insert-koin:koin-androidx-workmanager")
+                implementation("io.insert-koin:koin-androidx-compose")
+
+                // Android stuff
+                implementation("com.google.android.material:material:1.12.0")
+                implementation("androidx.core:core-ktx:1.16.0")
+                implementation("androidx.appcompat:appcompat:1.7.0")
+                implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+                implementation("androidx.annotation:annotation:1.9.1")
+                implementation("androidx.fragment:fragment-ktx:1.8.6")
+                implementation("androidx.recyclerview:recyclerview:1.4.0")
+                implementation("androidx.viewpager:viewpager:1.1.0")
+                implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+                // Jetpack Compose
+                val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
+                implementation(composeBom)
+                implementation("androidx.compose.material:material")
+                implementation("androidx.activity:activity-compose")
+                // Jetpack Compose Previews
+                implementation("androidx.compose.ui:ui-tooling-preview")
+
+                implementation("androidx.navigation:navigation-compose:2.8.9")
+
+                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+                implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+                // reorderable lists (raw Compose API is pretty complicated)
+                implementation("sh.calvin.reorderable:reorderable:2.4.3")
+
+                // multiplatform webview (for login via OAuth)
+                implementation("io.github.kevinnzou:compose-webview-multiplatform-android:1.9.40")
+
+                // photos
+                implementation("androidx.exifinterface:exifinterface:1.4.0")
+
+                // Android-specific Kotlin coroutines
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+
+                // scheduling background jobs
+                implementation("androidx.work:work-runtime-ktx:2.10.0")
+
+                // HTTP Client-Android
+                implementation("io.ktor:ktor-client-android:3.1.1")
+
+                // finding in which country we are for country-specific logic
+                implementation("de.westnordost:countryboundaries:2.1")
+                // finding a name for a feature without a name tag
+                implementation("de.westnordost:osmfeatures:7.0")
+
+                // widgets
+                implementation("androidx.viewpager2:viewpager2:1.1.0")
+                implementation("me.grantland:autofittextview:0.2.1")
+                implementation("com.google.android.flexbox:flexbox:3.0.0")
+
+                // sharing presets/settings via QR Code
+                implementation("io.github.alexzhirkevich:qrose:1.0.1")
+
+                // map and location
+                // upgrading MapLibre blocked by https://github.com/maplibre/maplibre-native/issues/3309
+                implementation("org.maplibre.gl:android-sdk:11.8.0")
+
+                // image view that allows zoom and pan
+                implementation("com.github.chrisbanes:PhotoView:2.3.0")
+            }
+        }
+
+        val androidInstrumentedTest by getting {
+            dependsOn(commonTest.get())
+            dependencies {
+                implementation("org.mockito:mockito-core:$mockitoVersion")
+            }
+        }
+
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+        }
+
+        val iosX64Test by getting
+        val iosArm64Test by getting
+        val iosSimulatorArm64Test by getting
+
+        val iosTest by creating {
+            dependsOn(commonTest.get())
+            iosX64Test.dependsOn(this)
+            iosArm64Test.dependsOn(this)
+            iosSimulatorArm64Test.dependsOn(this)
+        }
+    }
 }
 
 android {
@@ -14,9 +192,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     signingConfigs {
@@ -107,112 +282,7 @@ repositories {
 }
 
 dependencies {
-    val mockitoVersion = "5.15.2"
-
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-
-    // tests
-    testImplementation("org.mockito:mockito-core:$mockitoVersion")
-    testImplementation(kotlin("test"))
-
-    androidTestImplementation("androidx.test:runner:1.6.2")
-    androidTestImplementation("androidx.test:rules:1.6.1")
-    androidTestImplementation("org.mockito:mockito-android:$mockitoVersion")
-    androidTestImplementation(kotlin("test"))
-
-    // dependency injection
-    implementation(platform("io.insert-koin:koin-bom:4.0.2"))
-    implementation("io.insert-koin:koin-core")
-    implementation("io.insert-koin:koin-android")
-    implementation("io.insert-koin:koin-androidx-workmanager")
-    implementation("io.insert-koin:koin-androidx-compose")
-
-    // Android stuff
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.annotation:annotation:1.9.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.6")
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.viewpager:viewpager:1.1.0")
-    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-
-    // Jetpack Compose
-    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-    implementation("androidx.compose.material:material")
-    implementation("androidx.activity:activity-compose")
-    // Jetpack Compose Previews
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    implementation("androidx.navigation:navigation-compose:2.8.9")
-
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-
-    // reorderable lists (raw Compose API is pretty complicated)
-    implementation("sh.calvin.reorderable:reorderable:2.4.3")
-
-    // multiplatform webview (for login via OAuth)
-    implementation("io.github.kevinnzou:compose-webview-multiplatform-android:1.9.40")
-
-    // photos
-    implementation("androidx.exifinterface:exifinterface:1.4.0")
-
-    // settings
-    implementation("com.russhwolf:multiplatform-settings:1.3.0")
-
-    // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
-
-    // Date/time
-    api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
-
-    // scheduling background jobs
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
-
-    // HTTP Client
-    implementation("io.ktor:ktor-client-core:3.1.1")
-    implementation("io.ktor:ktor-client-android:3.1.1")
-    implementation("io.ktor:ktor-client-encoding:3.1.1")
-    testImplementation("io.ktor:ktor-client-mock:3.1.1")
-
-    // finding in which country we are for country-specific logic
-    implementation("de.westnordost:countryboundaries:2.1")
-    // finding a name for a feature without a name tag
-    implementation("de.westnordost:osmfeatures:7.0")
-
-    // widgets
-    implementation("androidx.viewpager2:viewpager2:1.1.0")
-    implementation("me.grantland:autofittextview:0.2.1")
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
-
-    // sharing presets/settings via QR Code
-    implementation("io.github.alexzhirkevich:qrose:1.0.1")
-    // for encoding information for the URL configuration (QR code)
-    implementation("com.ionspin.kotlin:bignum:0.3.10")
-
-    // serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.8.0")
-    implementation("com.charleskorn.kaml:kaml:0.72.0")
-    implementation("io.github.pdvrieze.xmlutil:core:0.91.0")
-    implementation("io.github.pdvrieze.xmlutil:core-io:0.91.0")
-
-    // map and location
-    // upgrading MapLibre blocked by https://github.com/maplibre/maplibre-native/issues/3309
-    implementation("org.maplibre.gl:android-sdk:11.8.0")
-
-    // opening hours parser
-    implementation("de.westnordost:osm-opening-hours:0.2.0")
-
-    // image view that allows zoom and pan
-    implementation("com.github.chrisbanes:PhotoView:2.3.0")
+    add("coreLibraryDesugaring", "com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 /** Localizations that should be pulled from POEditor */
